@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saving data on crudcrud</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <form id="my-form">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required>
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+        <br>
+      
+
+        <button type="submit">Submit</button>
+    </form>
+    <p class="mssg"></p>
+    <ul id="users"></ul>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+       
+const myForm = document.querySelector('#my-form');
+const nameInput = document.querySelector('#name');
+const emailInput = document.querySelector('#email');
+const msg = document.querySelector('.mssg');
+const userList = document.querySelector('#users');
+
+myForm.addEventListener('submit', onSubmit);
+
+function onSubmit(e) {
+    e.preventDefault();
+ 
+
+  if(nameInput.value==''||emailInput.value=='')
+  {
+   // alert("Please fill all the fields"); //alert function is not recommended
+   msg.classList.add('error');
+   msg.innerHTML='Please fill all the fields';
+   setTimeout(()=>msg.remove(),3000);
+  }
+  else
+  {
+    
+    
+    let myObj={
+      name:nameInput.value,
+      email:emailInput.value
+    };    
+
+    axios.post("https://crudcrud.com/api/f4da62178c94447d818481311d7bf6af/AppointmentData",myObj)
+    
+         .then((response) => {
+              showUserOnScreen(response.data);
+            //   console.log(response);
+         })
+         .catch((err) => {
+            document.body.innerHTML = document.body.innerHTML + "<h4>Something went wrong</h4>";
+            console.log(err);
+         })
+    
+
+
+
+
+
+     }
+
+   
+   nameInput.value='';
+   emailInput.value='';
+} 
+    
+window.addEventListener('DOMContentLoaded', onPageLoading); //When the webpage gets loaded
+
+function onPageLoading(e){
+   e.preventDefault();
+
+   axios.get("https://crudcrud.com/api/f4da62178c94447d818481311d7bf6af/AppointmentData")
+   
+   
+   
+        .then((response) =>{
+
+            // console.log(response);
+
+            for(let i=0;i<response.data.length;i++){ //The response we get is an array of objects. SO, we have to iterate through the array
+                showExistingUserOnScreen(response.data[i]);
+            }
+                    
+        })
+        .catch((err) => {
+            document.body.innerHTML = document.body.innerHTML + "<h4>Something went wrong</h4>";
+            console.log(err);
+        })
+
+}
+   
+//Showing the list of existing users on loading of web page
+function showExistingUserOnScreen(user){
+  let parentNode=document.getElementById('users'); //Getting the parentNode
+    let childHTML=`<li id=${user._id}>${user.name} - ${user.email}
+                      <button onclick=deleteUser('${user._id}')>delete user</button> 
+                      <button onclick=editUser('${user._id}','${user.email}','${user.name}')>edit user</button></li>`;  //Declaring the childHTML to be inserted inside the parentNode, adding delete button, adding edit button. In this part, onclick=deleteUser('${user.email}'), we need to put quotes when we pass ${user.email} which is a value, inside the function otherwise it will throw an error. The quotes will identify it as a string which is the required datatype.
+     parentNode.innerHTML=parentNode.innerHTML+childHTML; //Appending childHTML to parentNode
+};
+
+      //Showing the list of users below the form    
+    function showUserOnScreen(user){
+
+
+  
+    
+    let parentNode=document.getElementById('users'); //Getting the parentNode
+    let childHTML=`<li id=${user._id}>${user.name} - ${user.email}
+                      <button onclick=deleteUser('${user._id}','${user.emailId}')>delete user</button> 
+                      <button onclick=editUser('${user._id}','${user.email}','${user.name}')>edit user</button></li>`;  //Declaring the childHTML to be inserted inside the parentNode, adding delete button, adding edit button. In this part, onclick=deleteUser('${user.email}'), we need to put quotes when we pass ${user.email} which is a value, inside the function otherwise it will throw an error. The quotes will identify it as a string which is the required datatype.
+     parentNode.innerHTML=parentNode.innerHTML+childHTML; //Appending childHTML to parentNode
+
+      }
+
+    function removeUserFromScreen(userId){
+    
+
+
+        //Approach-2
+        let  parentNode=document.getElementById('users'); //Getting the parentNode
+        let childNodeToBeDeleted=document.getElementById(userId); //getting the childNode to be deleted
+         parentNode.removeChild(childNodeToBeDeleted); //Removing the child node
+
+      }  
+        
+    function deleteUser(userId){
+      
+
+       axios.delete(`https://crudcrud.com/api/f4da62178c94447d818481311d7bf6af/AppointmentData/${userId}`)
+            .then((response) => {
+              removeUserFromScreen(userId); 
+            })
+            .catch((err) => {
+              document.body.innerHTML = document.body.innerHTML + "<h4>Something went wrong</h4>";
+              console.log(err);
+            })
+}
+
+    function editUser(userId,emailId,name){
+
+        document.getElementById('email').value = emailId;
+    document.getElementById('name').value = name;
+      
+    //   nameInput.value=name;   //Populating the name field with the current value to be edited 
+    //   emailInput.value=emailId;  //Populating the email field with the current value to be edited 
+    //   deleteUser(userId);  //Deleting user from both local storage and screen
+}
+
+    </script>
+</body>
+</html>
